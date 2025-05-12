@@ -16,8 +16,8 @@ SEARCH_TERMS = [
 
 SERVICE_CONFIG = {  
     'thordata': {
-        'proxy_user': "td-customer-serp_adKPwm1isp2b",  
-        'proxy_pass': "sLfnIlcw0dmu",
+        'proxy_user': "td-customer-serp_HhFgxd5euqcb2",  
+        'proxy_pass': "JJtvFttulx7n",
         'proxy_host': "scraping.thordata.com",
         'proxy_port': "30001",
     }
