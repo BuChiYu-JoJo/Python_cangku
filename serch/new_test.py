@@ -3,6 +3,7 @@ import asyncio
 import csv
 import time
 import os
+import logging
 from urllib.parse import quote
 from aiohttp import BasicAuth
 
@@ -15,16 +16,40 @@ SEARCH_TERMS = [
 ]
 
 SERVICES_ENABLED = {
-    'thordata': False,
+    'thordata': True,
     'brightdata': False,
     'oxylabs': False,
     'serpapi': False,
     'yibiaopan': False,
     'jingpin': False,
     'scrapeless': False,
-    'serpapi_yandex': True,
-    'serpapi_duckduckgo': True
+    'serpapi_yandex': False,
+    'serpapi_duckduckgo': False,
+#    'abcproxy': False  # ✅ 新增服务启用
 }
+
+# ========== 可配置项 ==========
+SAVE_EMPTY_RESPONSE = False
+ENABLE_SAVE_RESPONSE = True      # ✅ 是否保存响应内容
+ENABLE_CONSOLE_LOG = False       # ✅ 是否显示控制台日志
+ENABLE_FILE_LOG = True           # ✅ 是否写入 run.log 日志文件
+
+# ========== 日志初始化 ==========
+if ENABLE_FILE_LOG:
+    logging.basicConfig(
+        filename="run.log",
+        filemode="w",
+        level=logging.INFO,
+        format="%(asctime)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+
+def log_print(message):
+    if ENABLE_CONSOLE_LOG:
+        print(message)
+    if ENABLE_FILE_LOG:
+        logging.info(message)
+
 
 SERVICE_CONFIG = {
     'thordata': {
@@ -33,12 +58,26 @@ SERVICE_CONFIG = {
         'headers': {"Content-Type": "application/json"},
         'param': lambda q: {
             "product_name": "luna",
-            "search_url": f"https://www.google.com/search?q={quote(q)}",
+            "search_url": f"https://www.bing.com/search?q={quote(q)}",
             "user_id": "1000179",
             "user_name": "s3412612",
-            "tdynamics": "False"
+            "tdynamics": "False",
+            "json": "2"
         }
     },
+#abc
+    'abcproxy': {
+        'url': "https://serpapi.abcproxy.com/search",
+        'method': 'GET',
+        'params': lambda q: {
+            "engine": "bing",
+            "q": q,
+            "api_key": "ec77d91bee24a591e855253805140b44",
+            "no_cache": "false",
+            "fetch_mode": "static"
+        }
+    },
+
     'brightdata': {
         'url': "https://api.brightdata.com/request",
         'method': 'POST',
@@ -141,10 +180,10 @@ SERVICE_CONFIG = {
     }
 }
 
-PER_QUERY_REQUESTS = 1000    #次数
+PER_QUERY_REQUESTS = 50    #次数
 TIMEOUT_SECONDS = 60
 MIN_CONTENT_SIZE_KB = 10
-CONCURRENCY = 20	#并发数
+CONCURRENCY = 10	#并发数
 SAVE_EMPTY_RESPONSE = False  #是否保存空内容
 
 # ====================
@@ -192,7 +231,8 @@ async def handle_request(session, semaphore, service, term, req_num):
                 content_size = len(content.encode('utf-8'))
                 result['content_size_kb'] = content_size / 1024
 
-                # 检查返回内容类型
+                log_print(f"[{service}] term={term}, req={req_num}, 状态码={response.status}, 耗时={result['elapsed_ms']:.1f}ms")
+
                 if "text/html" in response.headers.get("Content-Type", ""):
                     result['error'] = "返回了 HTML 页面，可能 URL 或参数错误"
                     return result
@@ -209,8 +249,7 @@ async def handle_request(session, semaphore, service, term, req_num):
                     result['error'] = f"内容过小 ({result['content_size_kb']:.2f}KB)"
                     return result
 
-                # 保存返回内容
-                if content_size > 0 or SAVE_EMPTY_RESPONSE:
+                if ENABLE_SAVE_RESPONSE and (content_size > 0 or SAVE_EMPTY_RESPONSE):
                     folder = f"data/{service}"
                     os.makedirs(folder, exist_ok=True)
                     filename = f"{term[:20].replace('/', '_')}_req{req_num:03d}.txt"
@@ -229,7 +268,7 @@ async def handle_request(session, semaphore, service, term, req_num):
             elapsed = (time.time() - start_time) * 1000
             result['elapsed_ms'] = elapsed if elapsed >= 1 else 1
             if result['elapsed_ms'] < 2:
-                print(f"⚠️ 触发异常且耗时近0ms -> service={service}, term={term}, 错误: {e}")
+                log_print(f"⚠️ 异常触发 (近0ms): {service} | {term} | 错误: {e}")
             return result
 
 # ====================
@@ -260,23 +299,24 @@ def generate_report(service, stats):
                 '错误信息': item['error'][:100]
             })
 
-    print(f"\n✅ 报告已生成: {filename}")
+    log_print(f"\n✅ 报告已生成: {filename}")
     return filename
+
 
 # ====================
 # 异步主程序
 # ====================
 async def main():
-    print("=== 异步多服务验证工具 ===")
-    print(f"并发数: {CONCURRENCY} | 超时设置: {TIMEOUT_SECONDS}s")
+    log_print("=== 异步多服务验证工具 ===")
+    log_print(f"并发数: {CONCURRENCY} | 超时设置: {TIMEOUT_SECONDS}s")
 
     async with aiohttp.ClientSession() as session:
         for service in SERVICES_ENABLED:
             if not SERVICES_ENABLED[service]:
-                print(f"跳过禁用服务: {service}")
+                log_print(f"跳过禁用服务: {service}")
                 continue
 
-            print(f"\n▶ 开始处理服务: {service.upper()}")
+            log_print(f"\n▶ 开始处理服务: {service.upper()}")
             stats = []
             semaphore = asyncio.Semaphore(CONCURRENCY)
 
@@ -294,7 +334,7 @@ async def main():
                 stats.extend(results)
 
                 success_count = sum(1 for r in results if r['success'])
-                print(f"▏已处理 {i+len(results)}/{total_tasks} | 本批成功率: {success_count/len(results):.1%}")
+                log_print(f"▏已处理 {i+len(results)}/{total_tasks} | 本批成功率: {success_count/len(results):.1%}")
 
             generate_report(service, stats)
 

@@ -26,7 +26,7 @@ HEADERS = {
     "User-Agent": "PostmanRuntime-ApipostRuntime/1.1.0",
     "Connection": "keep-alive",
     "Content-Type": "application/json",
-    "Authorization": "Bearer 0589abd75f5c73032acb47491ac0693f59ca11ae9dfd6fc36b4390b9ca3109be"
+    "Authorization": "Bearer dae21b252b1b1998bf709f7c02b8f867a1bc573460ea387731512bdb33e3da0b"
 }
 
 if sys.platform == "win32":
