@@ -1,0 +1,2 @@
+timestamp_utc,target_url,total_requests,success_requests,success_rate,avg_latency_s,p50_latency_s,p75_latency_s,p90_latency_s
+2025-12-17T04:52:05.732643Z,http://ipinfo.io/json,1000,973,0.973,1.532238,1.469,2.172,2.719

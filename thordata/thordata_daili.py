@@ -95,10 +95,10 @@ def test_residential_proxy_whitelist():
 # =============== 无限代理测试 ================
 def test_infinite_proxy():
     proxy = {
-        'http': 'http://nqpr29uk.thordata.online:9999',
-        'https': 'http://nqpr29uk.thordata.online:9999',
+        'http': 'http://kffa17rt.thordata.online:9999',
+        'https': 'http://kffa17rt.thordata.online:9999',
     }
-    auth = HTTPProxyAuth('td-customer-zxs1261977221', 'k1j7696pu')
+    auth = HTTPProxyAuth('td-customer-pzerSmqmo5uq', '3knb68a0y3')
     url = 'http://ipinfo.io'  # 必须用 HTTP 避免 CONNECT 隧道 407 错误
     success_count = 0
     result_lines = []
@@ -129,8 +129,8 @@ def test_infinite_proxy():
 # =============== 无限代理白名单测试 ================
 def test_infinite_proxy_whitelist():
     proxy = {
-        'http': 'http://nqpr29uk.thordata.online:20000',
-        'https': 'http://nqpr29uk.thordata.online:20000',
+        'http': 'http://kffa17rt.thordata.online:20000',
+        'https': 'http://kffa17rt.thordata.online:20000',
     }
     url = 'http://ipinfo.io'
     success_count = 0
@@ -201,15 +201,15 @@ if __name__ == "__main__":
 
     # 各类代理配置
     isp_proxies = [
-        ("95.134.79.231:6666:ZXS211123124:ZXS211123124", "CA - Toronto"),
-        ("154.196.211.22:6666:ZXS211123124:ZXS211123124", "SG - Singapore"),
-        ("154.93.0.120:6666:ZXS211123124:ZXS211123124", "SG - Singapore"),
-        ("178.93.244.193:6666:ZXS211123124:ZXS211123124", "CA - Toronto"),
+        ("188.209.143.236:6666:S9VG59Sh0WOx2G4:EMRZFGaXS2EVUo", "US - Portland"),
+        ("150.241.167.251:6666:x9kww9dEVGg:qWCeJ6i0SUIWb", "US - Philadelphia - Native"),
+        ("45.192.227.186:6666:x9kww9dEVGg:qWCeJ6i0SUIWb", "BR - Sao Paulo"),
+        ("167.148.74.16:6666:x9kww9dEVGg:qWCeJ6i0SUIWb", "US - Las Vegas - Native"),
     ]
 
     dc_proxies = [
-        ("38.244.123.224:6667:rawyylok1:zhermmbp1", "KR - Seoul"),
-        ("95.134.134.83:6667:uhyudxqy1:cepxpxke1", "US - Chicago"),
+        ("154.16.228.141:6667:ce0XtJY5uduZFY:T4OcnuGdZrBPA", "TH - Bangkok"),
+        ("38.33.152.196:6667:ce0XtJY5uduZFY:T4OcnuGdZrBPA", "BR - Sao Paulo"),
     ]
 
     # 执行各类测试
